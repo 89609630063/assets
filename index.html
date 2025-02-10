@@ -379,27 +379,18 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('click', function(event) {
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-        console.log("Попытка открыть клавиатуру: ", event.target.id);
-        let input = event.target;
-
-        // Принудительный перенос фокуса через искусственное создание инпута
-        let dummy = document.createElement("input");
-        dummy.style.position = "absolute";
-        dummy.style.opacity = "0";
-        dummy.style.height = "0";
-        dummy.style.width = "0";
-        dummy.style.zIndex = "-9999";
-        document.body.appendChild(dummy);
-        dummy.focus();
-        setTimeout(() => {
-            dummy.remove();
-            input.focus();
-            console.log("Фокус установлен на:", input.id);
-        }, 50);
-    }
-});
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+            registration.unregister().then(() => console.log("Service Worker удалён"));
+        });
+    });
+    caches.keys().then(names => {
+        names.forEach(name => {
+            caches.delete(name).then(() => console.log(`Кеш ${name} удалён`));
+        });
+    });
+}
 </script>
 </body>
 </html>
