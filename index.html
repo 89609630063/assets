@@ -384,18 +384,27 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(registration => {
-            registration.unregister().then(() => console.log("Service Worker удалён"));
-        });
+window.onerror = function (message, source, lineno, colno, error) {
+    alert(`Ошибка: ${message}\nФайл: ${source}\nСтрока: ${lineno}:${colno}`);
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("PWA загружен!");
+});
+
+document.querySelectorAll("input").forEach(input => {
+    input.addEventListener("focus", () => {
+        console.log("Фокус на", input.id);
     });
-    caches.keys().then(names => {
-        names.forEach(name => {
-            caches.delete(name).then(() => console.log(`Кеш ${name} удалён`));
-        });
+
+    input.addEventListener("blur", () => {
+        console.log("Фокус потерян", input.id);
     });
-}
+
+    input.addEventListener("touchend", (event) => {
+        console.log("Был клик по input:", event.target.id);
+    });
+});
 </script>
 </body>
 </html>
