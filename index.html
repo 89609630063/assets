@@ -387,6 +387,13 @@ document.querySelectorAll('input').forEach(input => {
         }, 500);
     });
 });
+document.addEventListener('focusin', (event) => {
+  console.log('FOCUS:', event.target.tagName, event.target.id);
+});
+
+document.addEventListener('focusout', (event) => {
+  console.log('BLUR:', event.target.tagName, event.target.id);
+});
 </script>
 </body>
 </html>
