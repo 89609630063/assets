@@ -405,6 +405,15 @@ document.querySelectorAll("input").forEach(input => {
         console.log("Был клик по input:", event.target.id);
     });
 });
+document.querySelectorAll("input").forEach(input => {
+    input.addEventListener("click", function () {
+        console.log("Клик по input:", this.id);
+        setTimeout(() => {
+            this.focus();
+            console.log("Фокус принудительно установлен на", this.id);
+        }, 500);
+    });
+});
 </script>
 </body>
 </html>
