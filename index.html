@@ -57,7 +57,14 @@ input {
     font-size: 16px;
     box-sizing: border-box;
 }
-
+input {
+    position: relative !important;
+    z-index: 9999 !important;
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+}
 /* Общий стиль кнопок */
 button {
     display: block;
