@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+
+    <title>Финансовый блокнот</title>
+    
+    <!-- Иконка сайта -->
+    <link rel="icon" href="assets/icons/favicon.ico" type="image/x-icon">
+
+    <!-- Иконки для мобильных устройств -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="icons/android-icon-192x192.png">
+    <!-- Манифест веб-приложения -->
+    <link rel="manifest" href="manifest.json">
+	<style>
+
+/* Общий стиль страницы */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+/* Контейнер */
+.container {
+    max-width: 400px;
+    width: 90%;
+    margin: auto;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Заголовок */
+h1 {
+    font-size: 22px;
+    color: #333;
+}
+
+/* Поля ввода */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+/* Общий стиль кнопок */
+button {
+    display: block;
+    width: 95%; /* Полная ширина внутри контейнера */
+    max-width: 150px; /* Ограничение по ширине */
+    padding: 12px 0; /* Увеличиваем высоту */
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 8px; /* Закругление краев */
+    cursor: pointer;
+    transition: 0.2s ease-in-out;
+    margin: 10px auto; /* Центрирование */
+}
+
+/* Дополнительный класс для центрирования */
+.center-btn {
+    display: flex;
+    justify-content: center;
+}
+
+/* 🎨 Кнопка "Добавить" */
+.add-btn {
+    background: #4CAF50; /* Цвет кнопки */
+    color: white;
+}
+
+.add-btn:hover {
+    background: #0056b3; /* Цвет при наведении */
+}
+
+.container button {
+    max-width: 100px;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+/* 🎨 Кнопка "Скачать" */
+.download-btn {
+    background: #ff9800;
+    color: white;
+}
+
+.download-btn:hover {
+    background: #e68900;
+}
+
+.share-btn:hover {
+    background: #388e3c;
+}
+.expense-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f8f8;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+}
+
+.expense-buttons {
+    display: flex;
+    gap: 5px;
+}
+/* 📱 Адаптация для мобильных устройств */
+@media (max-width: 480px) {
+    button {
+        font-size: 14px;
+        padding: 10px 0;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Финансовый блокнот</h1>
+
+    <label>💰 Ваша зарплата:</label>
+    <input type="number" id="salary" placeholder="Введите сумму" oninput="updateRemainingSalary()">
+
+    <label>📋 Добавить расход:</label>
+    <input type="text" id="expense-name" placeholder="Название">
+    <input type="number" id="expense-amount" placeholder="Сумма">
+    
+    <!-- Одна кнопка для добавления -->
+    <button class="add-btn" onclick="addExpense()">Добавить</button>
+
+    <div class="expenses-list" id="expenses-list"></div>
+
+    <div class="result">
+        <p>Общие расходы: <b id="total-expenses">0 ₽</b></p>
+        <p>Останется: <b id="remaining-salary">0 ₽</b></p>
+    </div>
+
+    <!-- График расходов -->
+    <canvas id="expenseChart"></canvas>
+
+    <!-- Кнопки управления -->
+    <div class="buttons-container">
+        <button class="download-btn" onclick="downloadData()">📥 Скачать</button>
+</div>
+
+    <script>
+    // Дефолтная дата в формате DD.MM.YYYY
+    function getCurrentDate() {
+      const date = new Date();
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+
+    let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+    // Функция для добавления расхода
+    function addExpense() {
+      const name = document.getElementById("expense-name").value;
+      const amount = parseFloat(document.getElementById("expense-amount").value);
+      const date = getCurrentDate(); // Текущая дата
+
+      if (name && amount > 0) {
+        expenses.push({ name, amount, date });
+        document.getElementById("expense-name").value = "";
+        document.getElementById("expense-amount").value = "";
+        updateExpenses();
+        saveToLocalStorage();
+        updateChart();
+      }
+    }
+
+    // Функция для обновления списка расходов
+    function updateExpenses() {
+      const list = document.getElementById("expenses-list");
+      list.innerHTML = "";
+
+      let totalExpenses = 0;
+      expenses.forEach((expense, index) => {
+        totalExpenses += expense.amount;
+        list.innerHTML += `
+          <div class="expense-item">
+            <span id="expense-text-${index}">${expense.name} - ${formatNumber(expense.amount)} (${expense.date})</span>
+            <div class="expense-buttons">
+              <button onclick="editExpense(${index})">Редактировать</button>
+              <button onclick="deleteExpense(${index})">Удалить</button>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById("total-expenses").innerText = formatNumber(totalExpenses);
+      updateRemainingSalary();
+    }
+
+    // Функция для удаления расхода
+    function deleteExpense(index) {
+      expenses.splice(index, 1);
+      updateExpenses();
+      saveToLocalStorage();
+      updateChart();
+    }
+
+    // Функция для редактирования расхода
+    function editExpense(index) {
+      const expense = expenses[index];
+      const expenseText = document.getElementById(`expense-text-${index}`);
+      expenseText.innerHTML = `
+        <input type="text" id="edit-name-${index}" value="${expense.name}">
+        <input type="number" id="edit-amount-${index}" value="${expense.amount}">
+        <button onclick="saveExpense(${index})">Сохранить</button>
+        <button onclick="cancelEdit(${index})">Отменить</button>
+      `;
+    }
+
+    // Функция для сохранения отредактированного расхода
+    function saveExpense(index) {
+      const newName = document.getElementById(`edit-name-${index}`).value;
+      const newAmount = parseFloat(document.getElementById(`edit-amount-${index}`).value);
+
+      if (newName && newAmount > 0) {
+        expenses[index] = { name: newName, amount: newAmount, date: getCurrentDate() };
+        updateExpenses();
+        saveToLocalStorage();
+        updateChart();
+      }
+    }
+
+    // Функция для отмены редактирования
+    function cancelEdit(index) {
+      updateExpenses();
+    }
+
+    // Функция для обновления оставшейся зарплаты
+    function updateRemainingSalary() {
+      const salary = parseFloat(document.getElementById("salary").value) || 0;
+      const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+      document.getElementById("remaining-salary").innerText = formatNumber(salary - totalExpenses);
+    }
+
+    // Функция для форматирования чисел
+    function formatNumber(number) {
+      return new Intl.NumberFormat("ru-RU").format(number) + " ₽";
+    }
+
+    // Функция для сохранения данных в LocalStorage
+    function saveToLocalStorage() {
+      localStorage.setItem("expenses", JSON.stringify(expenses));
+    }
+
+    // Функция для загрузки данных из LocalStorage
+    function loadFromLocalStorage() {
+      expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+      updateExpenses();
+    }
+
+    // Функция для рисования графика
+    let chartInstance = null;
+
+    function updateChart() {
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      const ctx = document.getElementById("expenseChart").getContext("2d");
+
+      // Группируем расходы по месяцам
+      const monthlyExpenses = {};
+
+      expenses.forEach(expense => {
+        const date = new Date(expense.date.split('.').reverse().join('-')); // Преобразуем дату в правильный формат
+        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`; // YYYY-MM формат
+        if (!monthlyExpenses[monthKey]) {
+          monthlyExpenses[monthKey] = 0;
+        }
+        monthlyExpenses[monthKey] += expense.amount;
+      });
+
+      // Формируем массивы для графика
+      const labels = Object.keys(monthlyExpenses).sort(); // Сортируем по месяцу
+      const data = labels.map(month => monthlyExpenses[month]);
+
+      chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels, // Месяцы
+          datasets: [{
+            label: "Расходы по месяцам",
+            data: data, // Сумма расходов за месяц
+            backgroundColor: "rgba(255, 99, 132, 0.5)",
+            borderColor: "rgba(255, 99, 132, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Загружаем данные при загрузке страницы
+    document.addEventListener("DOMContentLoaded", function () {
+      loadFromLocalStorage();
+      updateChart();
+    });
+  </script>
+<script>
+function downloadData() {
+    const salary = document.getElementById("salary").value || "Не указано";
+    const totalExpenses = document.getElementById("total-expenses").innerText;
+    const remainingSalary = document.getElementById("remaining-salary").innerText;
+
+    let data = `📋 Финансовый отчет\n`;
+    data += `💰 Зарплата: ${salary} ₽\n`;
+    data += `📉 Расходы: ${totalExpenses}\n`;
+    data += `💵 Останется: ${remainingSalary}\n\n`;
+    data += "📌 Детализация:\n";
+
+    expenses.forEach(exp => {
+        data += `- ${exp.name}: ${exp.amount} ₽\n`;
+    });
+
+    const bom = "\uFEFF"; // Добавляем BOM для корректного отображения UTF-8
+    const blob = new Blob([bom + data], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "финансовый-отчет.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker зарегистрирован с теми данными: ', registration);
+      })
+      .catch((error) => {
+        console.log('Ошибка при регистрации Service Worker: ', error);
+      });
+  });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</body>
+</html>
