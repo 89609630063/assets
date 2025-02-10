@@ -2,8 +2,6 @@ const CACHE_NAME = 'expenses-app-cache';
 const urlsToCache = [
   './',
   './index.html',
-  './styles.css',
-  './scripts.js',
   './assets/icons/favicon.ico',
   './assets/icons/icon-192x192.png',
   './assets/icons/icon-512x512.png',
