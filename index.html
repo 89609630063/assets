@@ -379,20 +379,26 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('touchend', () => {
-        setTimeout(() => {
-            input.focus();
-            console.log('Фокус установлен на', input.id);
-        }, 500);
-    });
-});
-document.addEventListener('focusin', (event) => {
-  console.log('FOCUS:', event.target.tagName, event.target.id);
-});
+document.addEventListener('click', function(event) {
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        console.log("Попытка открыть клавиатуру: ", event.target.id);
+        let input = event.target;
 
-document.addEventListener('focusout', (event) => {
-  console.log('BLUR:', event.target.tagName, event.target.id);
+        // Принудительный перенос фокуса через искусственное создание инпута
+        let dummy = document.createElement("input");
+        dummy.style.position = "absolute";
+        dummy.style.opacity = "0";
+        dummy.style.height = "0";
+        dummy.style.width = "0";
+        dummy.style.zIndex = "-9999";
+        document.body.appendChild(dummy);
+        dummy.focus();
+        setTimeout(() => {
+            dummy.remove();
+            input.focus();
+            console.log("Фокус установлен на:", input.id);
+        }, 50);
+    }
 });
 </script>
 </body>
