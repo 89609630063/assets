@@ -155,7 +155,7 @@ html, body {
     <label>📋 Добавить расход:</label>
     <input type="text" id="expense-name" placeholder="Название">
     <input type="number" id="expense-amount" placeholder="Сумма">
-    <input type="date" id="expense-date">
+    <input type="date" id="expense-date" placeholder="Дата">>
     <!-- Одна кнопка для добавления -->
     <button class="add-btn" ontouchend="addExpense()">Добавить</button>
 
@@ -173,9 +173,10 @@ html, body {
     <div class="buttons-container">
         <button class="download-btn" onclick="downloadData()">📥 Скачать</button>
 </div>
-
     <script>
+    
     let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+    
     // Дефолтная дата в формате DD.MM.YYYY
     function getCurrentDate() {
       const date = new Date();
@@ -195,7 +196,7 @@ html, body {
     if (!name || amount <= 0 || !date) {
         alert("⚠️ Заполните все поля!");
         return;
-    }
+       }
         
         expenses.push({ name, amount, date });
         
@@ -223,7 +224,7 @@ html, body {
       let totalExpenses = 0;
       expenses.forEach((expense, index) => {
         totalExpenses += expense.amount;
-        list.innerHTML += `
+        list.innerHTML += 
           <div class="expense-item">
             <span id="expense-text-${index}">${expense.name} - ${formatNumber(expense.amount)} (${expense.date})</span>
             <div class="expense-buttons">
@@ -231,7 +232,6 @@ html, body {
               <button onclick="deleteExpense(${index})">Удалить</button>
             </div>
           </div>
-        `;
       });
 
       document.getElementById("total-expenses").innerText = formatNumber(totalExpenses);
