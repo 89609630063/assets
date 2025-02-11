@@ -176,7 +176,10 @@ html, body {
     <script>
     
     let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    
+    let expenses = [
+    { amount: 1000, description: "Аренда", date: "2025-02-12" },
+    { amount: 500, description: "Долг другу", date: "2025-02-15" }
+];
     // Дефолтная дата в формате DD.MM.YYYY
     function getCurrentDate() {
       const date = new Date();
