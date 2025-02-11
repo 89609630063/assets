@@ -176,10 +176,7 @@ html, body {
     <script>
     
     let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    let expenses = [
-    { amount: 1000, description: "Аренда", date: "2025-02-12" },
-    { amount: 500, description: "Долг другу", date: "2025-02-15" }
-];
+    
     // Дефолтная дата в формате DD.MM.YYYY
     function getCurrentDate() {
       const date = new Date();
@@ -191,28 +188,30 @@ html, body {
 
 
     // Функция для добавления расхода
-    function addExpense() {
-      const name = document.getElementById("expense-name").value;
-      const amount = parseFloat(document.getElementById("expense-amount").value);
-      const date = document.getElementById("expense-date").value; // Дата платежа
+    function updateExpenses() {
+    const list = document.getElementById("expenses-list");
+    list.innerHTML = "";
 
-    if (!name || amount <= 0 || !date) {
-        alert("⚠️ Заполните все поля!");
-        return;
-       }
-        
-        expenses.push({ name, amount, date });
-        
-        document.getElementById("expense-name").value = "";
-        document.getElementById("expense-amount").value = "";
-        document.getElementById("expense-date").value = ""; // Очищаем поле даты
-        
-        updateExpenses();
-        saveToLocalStorage();
-        updateRemainingSalary(); // 🔥 Теперь обновляем остаток после до
-        updateChart();
-      }
+    expenses.forEach((expense, index) => {
+        const item = document.createElement("div");
+        item.classList.add("expense-item");
 
+        item.innerHTML = `
+            <span id="expense-text-${index}">${expense.name} - ${formatNumber(expense.amount)} (${expense.date})</span>
+            <div class="expense-buttons">
+                <button onclick="editExpense(${index})">Редакт.</button>
+                <button onclick="deleteExpense(${index})">Удалить</button>
+            </div>
+        `;
+
+        list.appendChild(item);
+    });
+
+    // Обновляем сумму расходов
+    let totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    document.getElementById("total-expenses").innerText = formatNumber(totalExpenses);
+    updateRemainingSalary();
+}
     // Функция для обновления списка расходов
     function updateExpenses() {
       const list = document.getElementById("expenses-list");
