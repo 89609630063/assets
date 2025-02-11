@@ -272,22 +272,7 @@ html, body {
       updateExpenses();
     }
 
-    // Функция для обновления оставшейся зарплаты
-    function updateRemainingSalary() {
-    const salaryInput = document.getElementById("salary");
-    const remainingDisplay = document.getElementById("remaining-salary");
-
-    if (!salaryInput || !remainingDisplay) {
-        console.error("⚠️ Не найден элемент зарплаты или отображения остатка!");
-        return;
-    }
-
-    let salary = parseFloat(salaryInput.value) || 0;
-    let totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-
-    let remaining = salary - totalExpenses;
-    remainingDisplay.textContent = `${remaining} ₽`;
-}
+    
 
 // Вызываем при загрузке страницы, чтобы сразу показать остаток
 document.addEventListener("DOMContentLoaded", () => {
@@ -438,6 +423,24 @@ document.querySelectorAll("input").forEach(input => {
         }, 500);
     });
 });
+</script>
+<script>
+// Функция для обновления оставшейся зарплаты
+    function updateRemainingSalary() {
+    const salaryInput = document.getElementById("salary");
+    const remainingDisplay = document.getElementById("remaining-salary");
+
+    if (!salaryInput || !remainingDisplay) {
+        console.error("⚠️ Не найден элемент зарплаты или отображения остатка!");
+        return;
+    }
+
+    let salary = parseFloat(salaryInput.value) || 0;
+    let totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    let remaining = salary - totalExpenses;
+    remainingDisplay.textContent = `${remaining} ₽`;
+}
 </script>
 </body>
 </html>
