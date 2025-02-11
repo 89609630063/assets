@@ -281,8 +281,16 @@ html, body {
 
 // Вызываем при загрузке страницы, чтобы сразу показать остаток
 document.addEventListener("DOMContentLoaded", () => {
-    loadExpensesFromLocalStorage();
+    expenses = JSON.parse(localStorage.getItem("expenses")) || [];
     updateRemainingSalary();
+    
+    if (typeof updateExpenses === "function") {
+        updateExpenses(); // Теперь вызываем, только если функция существует
+    } else {
+        console.error("❌ Функция updateExpenses() не найдена!");
+    }
+
+    console.log("🔍 script.js загружен!");
 });
 
     // Функция для форматирования чисел
@@ -454,12 +462,7 @@ remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
 
 // Проверяем загрузку скрипта
 
-document.addEventListener("DOMContentLoaded", () => {
-    expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    updateRemainingSalary();
-    updateExpenses(); // 🔥 Добавляем обновление списка расходов
-    console.log("🔍 script.js загружен!");
-});
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js" defer></script>
