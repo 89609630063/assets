@@ -175,6 +175,7 @@ html, body {
 </div>
 
     <script>
+    let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
     // Дефолтная дата в формате DD.MM.YYYY
     function getCurrentDate() {
       const date = new Date();
