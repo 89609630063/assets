@@ -185,13 +185,11 @@ html, body {
       return `${day}.${month}.${year}`;
     }
 
-    let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
     // Функция для добавления расхода
     function addExpense() {
       const name = document.getElementById("expense-name").value;
       const amount = parseFloat(document.getElementById("expense-amount").value);
-      const date = getCurrentDate(); // Текущая дата
       const date = document.getElementById("expense-date").value; // Получаем дату
       
     if (!name || amount <= 0 || !date) {
@@ -439,7 +437,7 @@ document.querySelectorAll("input").forEach(input => {
     }
 
     let salary = parseFloat(salaryInput.value) || 0;
-    let totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    let totalExpenses = Array.isArray(expenses) ? expenses.reduce((sum, exp) => sum + exp.amount, 0) : 0;
     let remaining = salary - totalExpenses;
 
     remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
@@ -450,6 +448,7 @@ document.querySelectorAll("input").forEach(input => {
 document.addEventListener("DOMContentLoaded", () => {
     expenses = JSON.parse(localStorage.getItem("expenses")) || [];
     updateRemainingSalary();
+    updateExpenses(); // 🔥 Добавляем обновление списка расходов
     console.log("🔍 script.js загружен!");
 });
 </script>
