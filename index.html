@@ -190,13 +190,19 @@ html, body {
     function addExpense() {
       const name = document.getElementById("expense-name").value;
       const amount = parseFloat(document.getElementById("expense-amount").value);
-      const date = document.getElementById("expense-date").value; // Получаем дату
-      
+      const date = document.getElementById("expense-date").value; // Дата платежа
+
     if (!name || amount <= 0 || !date) {
+        alert("⚠️ Заполните все поля!");
+        return;
+    }
+        
         expenses.push({ name, amount, date });
+        
         document.getElementById("expense-name").value = "";
         document.getElementById("expense-amount").value = "";
         document.getElementById("expense-date").value = ""; // Очищаем поле даты
+        
         updateExpenses();
         saveToLocalStorage();
         updateRemainingSalary(); // 🔥 Теперь обновляем остаток после до
@@ -452,5 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("🔍 script.js загружен!");
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js" defer></script>
 </body>
 </html>
