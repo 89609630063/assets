@@ -149,7 +149,6 @@ html, body {
 
 <div class="container">
     <h1>Финансовый блокнот</h1>
-
     <label>💰 Ваша зарплата:</label>
     <input type="number" id="salary" placeholder="Введите сумму" oninput="updateRemainingSalary()">
 
@@ -277,7 +276,7 @@ html, body {
     function updateRemainingSalary() {
     const salaryInput = document.getElementById("salary");
     const remainingDisplay = document.getElementById("remaining-salary");
-    
+
     if (!salaryInput || !remainingDisplay) {
         console.error("⚠️ Не найден элемент зарплаты или отображения остатка!");
         return;
