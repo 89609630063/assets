@@ -156,7 +156,7 @@ html, body {
     <label>📋 Добавить расход:</label>
     <input type="text" id="expense-name" placeholder="Название">
     <input type="number" id="expense-amount" placeholder="Сумма">
-    
+    <input type="date" id="expense-date">
     <!-- Одна кнопка для добавления -->
     <button class="add-btn" ontouchend="addExpense()">Добавить</button>
 
@@ -192,11 +192,13 @@ html, body {
       const name = document.getElementById("expense-name").value;
       const amount = parseFloat(document.getElementById("expense-amount").value);
       const date = getCurrentDate(); // Текущая дата
-
-      if (name && amount > 0) {
+      const date = document.getElementById("expense-date").value; // Получаем дату
+      
+    if (!name || amount <= 0 || !date) {
         expenses.push({ name, amount, date });
         document.getElementById("expense-name").value = "";
         document.getElementById("expense-amount").value = "";
+        document.getElementById("expense-date").value = ""; // Очищаем поле даты
         updateExpenses();
         saveToLocalStorage();
         updateChart();
@@ -207,7 +209,13 @@ html, body {
     function updateExpenses() {
       const list = document.getElementById("expenses-list");
       list.innerHTML = "";
-
+        
+        expenses.forEach(exp => {
+        const item = document.createElement("li");
+        item.innerHTML = `${exp.name} - ${exp.amount}₽ (Оплатить до: ${exp.date})`;
+        list.appendChild(item);
+    });
+}
       let totalExpenses = 0;
       expenses.forEach((expense, index) => {
         totalExpenses += expense.amount;
