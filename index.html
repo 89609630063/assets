@@ -446,7 +446,12 @@ document.querySelectorAll("input").forEach(input => {
 }
 
 // Проверяем загрузку скрипта
-console.log("🔍 script.js загружен!");
+
+document.addEventListener("DOMContentLoaded", () => {
+    expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+    updateRemainingSalary();
+    console.log("🔍 script.js загружен!");
+});
 </script>
 </body>
 </html>
