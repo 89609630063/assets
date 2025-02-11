@@ -427,20 +427,25 @@ document.querySelectorAll("input").forEach(input => {
 <script>
 // Функция для обновления оставшейся зарплаты
     function updateRemainingSalary() {
+    console.log("✅ updateRemainingSalary вызвана!");
+    
     const salaryInput = document.getElementById("salary");
     const remainingDisplay = document.getElementById("remaining-salary");
 
     if (!salaryInput || !remainingDisplay) {
-        console.error("⚠️ Не найден элемент зарплаты или отображения остатка!");
+        console.error("⚠️ Ошибка: не найдены элементы salary или remaining-salary!");
         return;
     }
 
     let salary = parseFloat(salaryInput.value) || 0;
     let totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-
     let remaining = salary - totalExpenses;
-    remainingDisplay.textContent = `${remaining} ₽`;
+
+    remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
 }
+
+// Проверяем загрузку скрипта
+console.log("🔍 script.js загружен!");
 </script>
 </body>
 </html>
