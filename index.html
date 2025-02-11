@@ -445,6 +445,9 @@ document.querySelectorAll("input").forEach(input => {
     let salary = parseFloat(salaryInput.value) || 0;
     let totalExpenses = Array.isArray(expenses) ? expenses.reduce((sum, exp) => sum + exp.amount, 0) : 0;
     let remaining = salary - totalExpenses;
+if (isNaN(remaining)) remaining = 0;
+
+remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
 
     remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
 }
