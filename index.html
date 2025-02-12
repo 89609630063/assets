@@ -583,7 +583,7 @@ function generateDetailedReport() {
 
             <h3>📌 Последние 5 расходов:</h3>
             <ul>${expenses.slice(-5).reverse().map(exp => `<li>${exp.date}: ${exp.name} - <b>${formatNumber(exp.amount)}</b> (${exp.category})</li>`).join("")}</ul>
-
+            <button onclick="goBack()" style="padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">⬅️ Назад</button>
             <button onclick="window.close()">Закрыть</button>
         </body>
         </html>
@@ -593,6 +593,11 @@ function generateDetailedReport() {
     reportWindow = window.open("", "_blank", "width=500,height=600");
     reportWindow.document.write(reportHTML);
     reportWindow.document.close(); // Завершаем запись в окно
+}
+</script>
+<script>
+function goBack() {
+    location.reload(); // Перезагружает приложение, возвращая на главную страницу
 }
 </script>
 </body>
