@@ -526,66 +526,73 @@ document.getElementById("salary-day").addEventListener("change", function () {
 });
 </script>
 <script>
+let reportWindow; // Переменная для хранения ссылки на окно
+
 function generateDetailedReport() {
     let totalExpenses = 0;
     let categoryTotals = {};
     let monthlyTotals = {};
     let dailyExpenses = {};
-    let today = new Date();
-    
-    // Считаем расходы по категориям, месяцам и дням
+
     expenses.forEach(expense => {
         totalExpenses += expense.amount;
+        let category = expense.category ? expense.category : "Без категории";
 
-        // Группировка по категориям
-        if (!categoryTotals[expense.category]) {
-            categoryTotals[expense.category] = 0;
+        if (!categoryTotals[category]) {
+            categoryTotals[category] = 0;
         }
-        categoryTotals[expense.category] += expense.amount;
+        categoryTotals[category] += expense.amount;
 
-        // Группировка по месяцам
         let dateParts = expense.date.split('.');
-        let monthKey = `${dateParts[2]}-${dateParts[1]}`; // YYYY-MM
+        let monthKey = `${dateParts[2]}-${dateParts[1]}`;
         if (!monthlyTotals[monthKey]) {
             monthlyTotals[monthKey] = 0;
         }
         monthlyTotals[monthKey] += expense.amount;
 
-        // Группировка по дням
         if (!dailyExpenses[expense.date]) {
             dailyExpenses[expense.date] = 0;
         }
         dailyExpenses[expense.date] += expense.amount;
     });
 
-    // Подсчет среднего расхода в день
     let daysTracked = Object.keys(dailyExpenses).length;
     let avgDailyExpense = daysTracked > 0 ? (totalExpenses / daysTracked).toFixed(2) : 0;
 
-    // Формируем текст отчета
-    let reportText = `📊 ДЕТАЛИЗИРОВАННЫЙ ОТЧЕТ\n\n`;
-    reportText += `💰 Общие расходы: ${formatNumber(totalExpenses)}\n`;
-    reportText += `📅 Средний расход в день: ${formatNumber(avgDailyExpense)}\n\n`;
+    let reportHTML = `
+        <html>
+        <head>
+            <title>Детализированный отчет</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                h2, h3 { color: #333; }
+                ul { padding-left: 20px; text-align: left; }
+                button { padding: 10px 20px; background-color: #ff4d4d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <h2>📊 Детализированный отчет</h2>
+            <p>💰 <b>Общие расходы:</b> ${formatNumber(totalExpenses)}</p>
+            <p>📅 <b>Средний расход в день:</b> ${formatNumber(avgDailyExpense)}</p>
 
-    reportText += `📂 **Расходы по категориям:**\n`;
-    for (let category in categoryTotals) {
-        reportText += `- ${category}: ${formatNumber(categoryTotals[category])}\n`;
-    }
+            <h3>📂 Расходы по категориям:</h3>
+            <ul>${Object.keys(categoryTotals).map(cat => `<li>${cat}: <b>${formatNumber(categoryTotals[cat])}</b></li>`).join("")}</ul>
 
-    reportText += `\n📆 **Расходы по месяцам:**\n`;
-    for (let month in monthlyTotals) {
-        reportText += `- ${month}: ${formatNumber(monthlyTotals[month])}\n`;
-    }
+            <h3>📆 Расходы по месяцам:</h3>
+            <ul>${Object.keys(monthlyTotals).map(month => `<li>${month}: <b>${formatNumber(monthlyTotals[month])}</b></li>`).join("")}</ul>
 
-    reportText += `\n📌 **Последние 5 расходов:**\n`;
-    let recentExpenses = expenses.slice(-5).reverse();
-    recentExpenses.forEach(exp => {
-        reportText += `- ${exp.date}: ${exp.name} (${formatNumber(exp.amount)})\n`;
-    });
+            <h3>📌 Последние 5 расходов:</h3>
+            <ul>${expenses.slice(-5).reverse().map(exp => `<li>${exp.date}: ${exp.name} - <b>${formatNumber(exp.amount)}</b> (${exp.category})</li>`).join("")}</ul>
 
-    // Выводим отчет в новом окне
-    let reportWindow = window.open("", "Отчет", "width=500,height=600");
-    reportWindow.document.write(`<pre>${reportText}</pre>`);
+            <button onclick="window.close()">Закрыть</button>
+        </body>
+        </html>
+    `;
+
+    // Открываем отчет в новом окне и сохраняем ссылку на него
+    reportWindow = window.open("", "_blank", "width=500,height=600");
+    reportWindow.document.write(reportHTML);
+    reportWindow.document.close(); // Завершаем запись в окно
 }
 </script>
 </body>
