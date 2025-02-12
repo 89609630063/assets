@@ -1,24 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Финансовый блокнот">
-<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
-
-<title>Финансовый блокнот</title>
+    <title>Финансовый блокнот</title>
     
     <!-- Иконка сайта -->
-    <link rel="icon" href="./assets/icons/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="assets/icons/favicon.ico" type="image/x-icon">
 
     <!-- Иконки для мобильных устройств -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="/assets/icons/android-icon-192x192.png">
+    <link rel="icon" sizes="192x192" href="assets/icons/icon-192x192.png">
+    <link rel="icon" sizes="512x512" href="assets/icons/icon-512x512.png">
+
     <!-- Манифест веб-приложения -->
     <link rel="manifest" href="manifest.json">
 	<style>
@@ -60,14 +55,7 @@ input {
     font-size: 16px;
     box-sizing: border-box;
 }
-input {
-    position: relative !important;
-    z-index: 9999 !important;
-    display: block !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    user-select: text !important;
-}
+
 /* Общий стиль кнопок */
 button {
     display: block;
@@ -140,43 +128,58 @@ button {
         padding: 10px 0;
     }
 }
-html, body {
-    overflow: auto !important;
-}
+
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Финансовый блокнот</h1>
+
     <label>💰 Ваша зарплата:</label>
-  <input type="number" id="salary" placeholder="Введите зарплату" oninput="updateRemainingSalary()">
-<div id="remaining-salary">0 ₽</div>
+    <input type="number" id="salary" placeholder="Введите сумму" oninput="updateRemainingSalary()">
+
     <label>📋 Добавить расход:</label>
     <input type="text" id="expense-name" placeholder="Название">
+	<label>📂 Категория:</label>
+<select id="expense-category">
+    <option value="Еда">Еда</option>
+    <option value="Транспорт">Транспорт</option>
+    <option value="Развлечения">Развлечения</option>
+    <option value="Коммунальные">Коммунальные</option>
+    <option value="Здоровье">Здоровье</option>
+    <option value="Кредит">Кредит</option>
+    <option value="Другое">Другое</option>
+</select>
     <input type="number" id="expense-amount" placeholder="Сумма">
-    <input type="date" id="expense-date" placeholder="Дата">
+    <input type="date" id="payment-date" placeholder="Дата платежа">
     <!-- Одна кнопка для добавления -->
-    <button class="add-btn" ontouchend="addExpense()">Добавить</button>
+    <button class="add-btn" onclick="addExpense()">Добавить</button>
 
     <div class="expenses-list" id="expenses-list"></div>
 
     <div class="result">
-        <p>Общие расходы: <b id="total-expenses">0 ₽</b></p>
+        <p>🔮 Прогноз расходы на следующий месяц: <b id="predicted-expenses">0 ₽</b></p>
+<p>⚠️ <span id="budget-warning" style="color: red;"></span></p>
+		<p>Общие расходы: <b id="total-expenses">0 ₽</b></p>
         <p>Останется: <b id="remaining-salary">0 ₽</b></p>
     </div>
-
+<div class="advice-section">
+    <h3>💡 Финансовый совет:</h3>
+    <p id="financial-advice">Анализируем данные...</p>
+</div>
     <!-- График расходов -->
     <canvas id="expenseChart"></canvas>
-
+	<button onclick="generateDetailedReport()">📊Отчет </button>
+<p>📅 До ЗП осталось: <b id="days-until-salary"></b> дней</p>
+<label>💵 День ЗП число:</label>
+<input type="number" id="salary-day" min="1" max="31" value="5" onchange="updateSalaryCountdown()">
     <!-- Кнопки управления -->
     <div class="buttons-container">
         <button class="download-btn" onclick="downloadData()">📥 Скачать</button>
 </div>
+
     <script>
-    
-    let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    
     // Дефолтная дата в формате DD.MM.YYYY
     function getCurrentDate() {
       const date = new Date();
@@ -186,54 +189,134 @@ html, body {
       return `${day}.${month}.${year}`;
     }
 
+    let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
     // Функция для добавления расхода
-    function updateExpenses() {
-    const list = document.getElementById("expenses-list");
-    list.innerHTML = "";
+ function addExpense() {
+    const name = document.getElementById("expense-name").value;
+    const amount = parseFloat(document.getElementById("expense-amount").value);
+    const dateInput = document.getElementById("payment-date").value;
+    const category = document.getElementById("expense-category").value; // Получаем категорию
 
-    expenses.forEach((expense, index) => {
-        const item = document.createElement("div");
-        item.classList.add("expense-item");
+    if (!dateInput) {
+        alert("Выберите дату платежа!");
+        return;
+    }
 
-        item.innerHTML = `
-            <span id="expense-text-${index}">${expense.name} - ${formatNumber(expense.amount)} (${expense.date})</span>
-            <div class="expense-buttons">
-                <button onclick="editExpense(${index})">Редакт.</button>
-                <button onclick="deleteExpense(${index})">Удалить</button>
-            </div>
-        `;
+    const date = new Date(dateInput).toLocaleDateString("ru-RU");
 
-        list.appendChild(item);
+    if (name && amount > 0) {
+        expenses.push({ name, amount, date, category });
+        document.getElementById("expense-name").value = "";
+        document.getElementById("expense-amount").value = "";
+        document.getElementById("payment-date").value = "";
+        document.getElementById("expense-category").value = "Другое"; // Сбрасываем категорию
+        updateExpenses();
+        saveToLocalStorage();
+        updateChart();
+    }
+}
+    
+	function predictNextMonthExpenses() {
+    let monthlyTotals = {};
+    let today = new Date();
+    let currentMonth = today.getMonth() + 1;
+    let currentYear = today.getFullYear();
+
+    // Группируем расходы по месяцам
+    expenses.forEach(expense => {
+        let dateParts = expense.date.split('.');
+        let year = parseInt(dateParts[2]);
+        let month = parseInt(dateParts[1]);
+
+        let monthKey = `${year}-${month}`;
+        if (!monthlyTotals[monthKey]) {
+            monthlyTotals[monthKey] = 0;
+        }
+        monthlyTotals[monthKey] += expense.amount;
     });
 
-    // Обновляем сумму расходов
-    let totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    document.getElementById("total-expenses").innerText = formatNumber(totalExpenses);
-    updateRemainingSalary();
+    // Берем последние 3 месяца для анализа
+    let lastThreeMonths = Object.keys(monthlyTotals).sort().slice(-3);
+    let sumLastThree = lastThreeMonths.reduce((sum, key) => sum + monthlyTotals[key], 0);
+    let avgMonthlyExpense = lastThreeMonths.length > 0 ? sumLastThree / lastThreeMonths.length : 0;
+
+    // Прогнозируемый расход на следующий месяц
+    let predictedNextMonth = avgMonthlyExpense.toFixed(2);
+    document.getElementById("predicted-expenses").innerText = formatNumber(predictedNextMonth);
+
+    // Предупреждение, если траты растут
+    let lastMonthKey = `${currentYear}-${currentMonth}`;
+    if (monthlyTotals[lastMonthKey] && monthlyTotals[lastMonthKey] > avgMonthlyExpense * 1.2) {
+        document.getElementById("budget-warning").innerText = "⚠️ Внимание! Ваши расходы в этом месяце выше обычного!";
+    } else {
+        document.getElementById("budget-warning").innerText = "";
+    }
 }
-    // Функция для обновления списка расходов
+
+// Запускаем прогноз при загрузке страницы
+document.addEventListener("DOMContentLoaded", predictNextMonthExpenses);
+	
+	function generateFinancialAdvice() {
+    if (expenses.length === 0) {
+        document.getElementById("financial-advice").innerText = "Добавьте расходы, чтобы получить советы!";
+        return;
+    }
+
+    let categoryTotals = {};
+    let totalExpenses = 0;
+    
+    // Группируем расходы по категориям
+    expenses.forEach(expense => {
+        let category = expense.category ? expense.category : "Без категории";
+        
+        totalExpenses += expense.amount;
+        if (!categoryTotals[category]) {
+            categoryTotals[category] = 0;
+        }
+        categoryTotals[category] += expense.amount;
+    });
+
+    if (Object.keys(categoryTotals).length === 0) {
+        document.getElementById("financial-advice").innerText = "Не могу дать совет – добавьте больше расходов.";
+        return;
+    }
+
+    let mostExpensiveCategory = Object.keys(categoryTotals).reduce((a, b) => categoryTotals[a] > categoryTotals[b] ? a : b);
+
+    let advice = "";
+    if (categoryTotals[mostExpensiveCategory] > totalExpenses * 0.3) {
+        advice = `📌 Вы тратите слишком много на **${mostExpensiveCategory}** (${formatNumber(categoryTotals[mostExpensiveCategory])}). Попробуйте сократить эти расходы!`;
+    } else if (totalExpenses > 50000) {
+        advice = "💰 Ваши расходы превышают 50 000 ₽. Возможно, стоит пересмотреть бюджет и сократить ненужные траты.";
+    } else if (expenses.length >= 10) {
+        advice = "🎯 У вас много мелких покупок. Возможно, стоит исключить импульсивные покупки?";
+    } else {
+        advice = "✅ Ваши расходы выглядят сбалансированными! Продолжайте в том же духе.";
+    }
+
+    document.getElementById("financial-advice").innerText = advice;
+}
+
+// Вызываем функцию при загрузке страницы
+document.addEventListener("DOMContentLoaded", generateFinancialAdvice);
+	// Функция для обновления списка расходов
     function updateExpenses() {
       const list = document.getElementById("expenses-list");
       list.innerHTML = "";
-        
-        expenses.forEach(exp => {
-        const item = document.createElement("li");
-        item.innerHTML = `${exp.name} - ${exp.amount}₽ (Оплатить до: ${exp.date})`;
-        list.appendChild(item);
-    });
-}
+
       let totalExpenses = 0;
       expenses.forEach((expense, index) => {
         totalExpenses += expense.amount;
-        list.innerHTML += 
-          <div class="expense-item">
-            <span id="expense-text-${index}">${expense.name} - ${formatNumber(expense.amount)} (${expense.date})</span>
-            <div class="expense-buttons">
-              <button onclick="editExpense(${index})">Редакт.</button>
-              <button onclick="deleteExpense(${index})">Удалить</button>
-            </div>
-          </div>
+        list.innerHTML += `
+  <div class="expense-item">
+    <span id="expense-text-${index}">${expense.name} - ${formatNumber(expense.amount)} (${expense.date}) <br> 📂 Категория: <b>${expense.category}</b></span>
+    <div class="expense-buttons">
+      <button onclick="editExpense(${index})">Ред.</button>
+      <button onclick="deleteExpense(${index})">Удалить</button>
+    </div>
+  </div>
+  `;
       });
 
       document.getElementById("total-expenses").innerText = formatNumber(totalExpenses);
@@ -247,52 +330,57 @@ html, body {
       saveToLocalStorage();
       updateChart();
     }
-
+// Функция для преобразования даты в формат YYYY-MM-DD для input type="date"
+    function formatDateForInput(dateString) {
+       const parts = dateString.split(".");
+       
+	   if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`; // Преобразуем в YYYY-MM-DD
+    }
+    return "";
+   }
     // Функция для редактирования расхода
-    function editExpense(index) {
-      const expense = expenses[index];
-      const expenseText = document.getElementById(`expense-text-${index}`);
-      expenseText.innerHTML = `
+   function editExpense(index) {
+    const expense = expenses[index];
+    const expenseText = document.getElementById(`expense-text-${index}`);
+
+    expenseText.innerHTML = `
         <input type="text" id="edit-name-${index}" value="${expense.name}">
         <input type="number" id="edit-amount-${index}" value="${expense.amount}">
+        <input type="date" id="edit-date-${index}" value="${formatDateForInput(expense.date)}">
         <button onclick="saveExpense(${index})">Сохранить</button>
         <button onclick="cancelEdit(${index})">Отменить</button>
-      `;
-    }
+    `;
+}
 
     // Функция для сохранения отредактированного расхода
-    function saveExpense(index) {
-      const newName = document.getElementById(`edit-name-${index}`).value;
-      const newAmount = parseFloat(document.getElementById(`edit-amount-${index}`).value);
+   function saveExpense(index) {
+    const newName = document.getElementById(`edit-name-${index}`).value;
+    const newAmount = parseFloat(document.getElementById(`edit-amount-${index}`).value);
+    const newDate = document.getElementById(`edit-date-${index}`).value;
 
-      if (newName && newAmount > 0) {
-        expenses[index] = { name: newName, amount: newAmount, date: getCurrentDate() };
+    if (newName && newAmount > 0 && newDate) {
+        expenses[index] = { 
+            name: newName, 
+            amount: newAmount, 
+            date: new Date(newDate).toLocaleDateString("ru-RU") // Конвертируем в DD.MM.YYYY
+        };
         updateExpenses();
         saveToLocalStorage();
         updateChart();
-      }
     }
-
+}
     // Функция для отмены редактирования
     function cancelEdit(index) {
       updateExpenses();
     }
 
-    
-
-// Вызываем при загрузке страницы, чтобы сразу показать остаток
-document.addEventListener("DOMContentLoaded", () => {
-    expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    updateRemainingSalary();
-    
-    if (typeof updateExpenses === "function") {
-        updateExpenses(); // Теперь вызываем, только если функция существует
-    } else {
-        console.error("❌ Функция updateExpenses() не найдена!");
+    // Функция для обновления оставшейся зарплаты
+    function updateRemainingSalary() {
+      const salary = parseFloat(document.getElementById("salary").value) || 0;
+      const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+      document.getElementById("remaining-salary").innerText = formatNumber(salary - totalExpenses);
     }
-
-    console.log("🔍 script.js загружен!");
-});
 
     // Функция для форматирования чисел
     function formatNumber(number) {
@@ -405,66 +493,100 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-window.onerror = function (message, source, lineno, colno, error) {
-    alert(`Ошибка: ${message}\nФайл: ${source}\nСтрока: ${lineno}:${colno}`);
-};
-
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("PWA загружен!");
-});
-
-document.querySelectorAll("input").forEach(input => {
-    input.addEventListener("focus", () => {
-        console.log("Фокус на", input.id);
-    });
-
-    input.addEventListener("blur", () => {
-        console.log("Фокус потерян", input.id);
-    });
-
-    input.addEventListener("touchend", (event) => {
-        console.log("Был клик по input:", event.target.id);
-    });
-});
-document.querySelectorAll("input").forEach(input => {
-    input.addEventListener("click", function () {
-        console.log("Клик по input:", this.id);
-        setTimeout(() => {
-            this.focus();
-            console.log("Фокус принудительно установлен на", this.id);
-        }, 500);
-    });
-});
-</script>
-<script>
-// Функция для обновления оставшейся зарплаты
-    function updateRemainingSalary() {
-    console.log("✅ updateRemainingSalary вызвана!");
+function updateSalaryCountdown() {
+    const today = new Date();
+    const salaryDay = parseInt(document.getElementById("salary-day").value) || 5; // Берём дату из инпута
     
-    const salaryInput = document.getElementById("salary");
-    const remainingDisplay = document.getElementById("remaining-salary");
+    let nextSalaryDate = new Date(today.getFullYear(), today.getMonth(), salaryDay);
 
-    if (!salaryInput || !remainingDisplay) {
-        console.error("⚠️ Ошибка: не найдены элементы salary или remaining-salary!");
-        return;
+    if (today.getDate() >= salaryDay) {
+        nextSalaryDate = new Date(today.getFullYear(), today.getMonth() + 1, salaryDay);
     }
 
-    let salary = parseFloat(salaryInput.value) || 0;
-    let totalExpenses = Array.isArray(expenses) ? expenses.reduce((sum, exp) => sum + exp.amount, 0) : 0;
-    let remaining = salary - totalExpenses;
-if (isNaN(remaining)) remaining = 0;
+    const diff = Math.ceil((nextSalaryDate - today) / (1000 * 60 * 60 * 24));
 
-remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
-
-    remainingDisplay.textContent = `${remaining.toFixed(2)} ₽`;
+    document.getElementById("days-until-salary").innerText = diff;
 }
 
-// Проверяем загрузку скрипта
+// Загружаем значение из localStorage, если оно есть
+document.addEventListener("DOMContentLoaded", () => {
+    const savedSalaryDay = localStorage.getItem("salaryDay");
+    if (savedSalaryDay) {
+        document.getElementById("salary-day").value = savedSalaryDay;
+    }
+    updateSalaryCountdown();
+});
 
-
+// Сохраняем выбранную дату в localStorage
+document.getElementById("salary-day").addEventListener("change", function () {
+    localStorage.setItem("salaryDay", this.value);
+    updateSalaryCountdown();
+});
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="assets/script.js" defer></script>
+<script>
+function generateDetailedReport() {
+    let totalExpenses = 0;
+    let categoryTotals = {};
+    let monthlyTotals = {};
+    let dailyExpenses = {};
+    let today = new Date();
+    
+    // Считаем расходы по категориям, месяцам и дням
+    expenses.forEach(expense => {
+        totalExpenses += expense.amount;
+
+        // Группировка по категориям
+        if (!categoryTotals[expense.category]) {
+            categoryTotals[expense.category] = 0;
+        }
+        categoryTotals[expense.category] += expense.amount;
+
+        // Группировка по месяцам
+        let dateParts = expense.date.split('.');
+        let monthKey = `${dateParts[2]}-${dateParts[1]}`; // YYYY-MM
+        if (!monthlyTotals[monthKey]) {
+            monthlyTotals[monthKey] = 0;
+        }
+        monthlyTotals[monthKey] += expense.amount;
+
+        // Группировка по дням
+        if (!dailyExpenses[expense.date]) {
+            dailyExpenses[expense.date] = 0;
+        }
+        dailyExpenses[expense.date] += expense.amount;
+    });
+
+    // Подсчет среднего расхода в день
+    let daysTracked = Object.keys(dailyExpenses).length;
+    let avgDailyExpense = daysTracked > 0 ? (totalExpenses / daysTracked).toFixed(2) : 0;
+
+    // Формируем текст отчета
+    let reportText = `📊 ДЕТАЛИЗИРОВАННЫЙ ОТЧЕТ\n\n`;
+    reportText += `💰 Общие расходы: ${formatNumber(totalExpenses)}\n`;
+    reportText += `📅 Средний расход в день: ${formatNumber(avgDailyExpense)}\n\n`;
+
+    reportText += `📂 **Расходы по категориям:**\n`;
+    for (let category in categoryTotals) {
+        reportText += `- ${category}: ${formatNumber(categoryTotals[category])}\n`;
+    }
+
+    reportText += `\n📆 **Расходы по месяцам:**\n`;
+    for (let month in monthlyTotals) {
+        reportText += `- ${month}: ${formatNumber(monthlyTotals[month])}\n`;
+    }
+
+    reportText += `\n📌 **Последние 5 расходов:**\n`;
+    let recentExpenses = expenses.slice(-5).reverse();
+    recentExpenses.forEach(exp => {
+        reportText += `- ${exp.date}: ${exp.name} (${formatNumber(exp.amount)})\n`;
+    });
+
+    // Выводим отчет в новом окне
+    let reportWindow = window.open("", "Отчет", "width=500,height=600");
+    reportWindow.document.write(`<pre>${reportText}</pre>`);
+}
+</script>
 </body>
 </html>
